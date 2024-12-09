@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from utils.models import *
 from utils.losses import L_noise, L_edit
-from utils.dataset import make_image_dataset
+from utils.dataset import CC2_Dataset, get_train_and_val_loaders
 
 
 # -- hyperparams
@@ -21,12 +21,15 @@ LR = 1e-5
 ALPHA = 4  # weight for L_noise
 
 NUM_WORKERS = 1
-TRAIN_DATA_PATHS = []
-VAL_DATA_PATHS = []
+DATASET_PATH = "/work/hdd/bcsi/ndaithankar/datasets/cc2/"
+TRAIN_SPLIT_PCT = 0.8
+
 
 
 # -- init the immunizer model (based on UNet++)
 immunizer = ImmunizerModel()
+immunizer = immunizer.to(DEVICE)
+
 
 
 # -- load the stable diffusion inpainting pipeline from huggingface
@@ -37,26 +40,28 @@ stable_diffusion_pipeline = StableDiffusionInpaintPipeline.from_pretrained(
 stable_diffusion_pipeline = stable_diffusion_pipeline.to(DEVICE)
 
 
+
 # -- transformations
-transforms = []
+shared_transforms = []
 
 
-# -- dataloaders
-train_dataset, train_loader = make_image_dataset(
-	data_paths=TRAIN_DATA_PATHS, 
+
+# -- init the dataset
+dataset = CC2_Dataset(
+        dataset_path=DATASET_PATH,
+        shared_transforms=shared_transforms)
+
+
+
+# -- train and val dataloaders
+train_dataset, train_loader, val_dataset, val_loader = get_train_and_val_loaders(
+	dataset=dataset,
+	train_split_pct=TRAIN_SPLIT_PCT,
 	batch_size=BATCH_SIZE, 
 	num_workers=NUM_WORKERS, 
 	pin_mem=True, 
-	transform=transforms, 
-	shuffle=True)
-
-val_dataset, val_loader = make_image_dataset(
-	data_paths=VAL_DATA_PATHS, 
-	batch_size=BATCH_SIZE, 
-	num_workers=NUM_WORKERS, 
-	pin_mem=True, 
-	transform=transforms, 
-	shuffle=False)
+	train_shuffle=True,
+	val_shuffle=False)
 
 
 
