@@ -18,15 +18,15 @@ def train(args):
 	DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 	NUM_EPOCHS = args.epochs				 
-	BATCH_SIZE = args.bs						# default: 4
-	LR = args.lr								# default: 1e-5
+	BATCH_SIZE = args.bs								# default: 4
+	LR = args.lr										# default: 1e-5
 
 	# weight for the L_noise term
-	ALPHA = args.alpha							# default: 4
+	ALPHA = args.alpha									# default: 4
 
-	NUM_WORKERS = args.num_workers				# default: 1
-	DATASET_PATH = "/work/hdd/bcsi/ndaithankar/datasets/cc2/"
-	TRAIN_SPLIT_PCT = args.train_split_pct		# default: 0.8
+	NUM_WORKERS = args.num_workers						# default: 1
+	DATASET_PATH = args.dataset_path					# default: "/work/hdd/bcsi/ndaithankar/datasets/cc2/"
+	TRAIN_SPLIT_PCT = args.train_split_pct				# default: 0.8
 
 
 	# -- init the immunizer model (based on UNet++)
@@ -155,6 +155,7 @@ if __name__ == "__main__":
 
 	parser.add_argument("--alpha", type=int, help="the weight for noise loss term", default=4)
 
+	parser.add_argument("--dataset_path", type=str, help="path to the cc2 dataset", default="/work/hdd/bcsi/ndaithankar/datasets/cc2/")
 	parser.add_argument("--num_workers", type=int, help="the number of workers", default=1)
 	parser.add_argument("--train_split_pct", type=float, help="percent of data to use for training", default=0.8)
 
