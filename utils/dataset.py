@@ -93,7 +93,7 @@ class CC2_Dataset(torch.utils.data.Dataset):
 
         # so we simply keep the background as 0 and set other areas to 1 and treat the 1 are as foreground
         mask[mask != 0] = 1
-        mask = np.where(mask == 1, 0, 1)
+        # mask = np.where(mask == 1, 0, 1)
 
         prompt = random.choice(self.prompts)
 

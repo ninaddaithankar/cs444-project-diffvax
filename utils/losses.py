@@ -9,6 +9,8 @@ def L_noise(immunized_image, original_image, mask):
 
 # -- the Ledit term - drives the edited mask image to zero
 def L_edit(immunized_image, original_image, mask, editing_model, prompt):
-    # Have to define this editing model, stable diffusion inpainting
-    edited_image = editing_model(immunized_image, mask, prompt)
+    
+    # flip the mask to paint the background and pass it through the stable diffusion pipeline
+    edited_image = editing_model(immunized_image, 1 - mask, prompt)
+
     return torch.sum(torch.abs(edited_image - original_image) * (1 - mask)) / torch.sum(1 - mask)

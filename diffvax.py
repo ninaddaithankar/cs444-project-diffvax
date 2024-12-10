@@ -4,8 +4,9 @@ import argparse
 import torch
 import torch.optim as optim
 
-from diffusers import StableDiffusionInpaintPipeline
 from tqdm import tqdm
+from torchvision import transforms
+from diffusers import StableDiffusionInpaintPipeline
 
 from utils.models import *
 from utils.losses import L_noise, L_edit
@@ -43,7 +44,13 @@ def train(args):
 
 
 	# -- transformations
-	shared_transforms = []
+	shared_transforms = transforms.Compose([
+		transforms.Resize((512, 512)),
+		transforms.ToTensor(),
+
+		# Optionally normalize the image based on model's training norm (mean, std)
+		# transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])  # For Stable Diffusion model normalization
+	])
 
 
 	# -- init the dataset
