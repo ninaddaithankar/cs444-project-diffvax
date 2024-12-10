@@ -29,11 +29,9 @@ def train(args):
 	TRAIN_SPLIT_PCT = args.train_split_pct		# default: 0.8
 
 
-
 	# -- init the immunizer model (based on UNet++)
 	immunizer = ImmunizerModel()
 	immunizer = immunizer.to(DEVICE)
-
 
 
 	# -- load the stable diffusion inpainting pipeline from huggingface
@@ -44,17 +42,14 @@ def train(args):
 	stable_diffusion_pipeline = stable_diffusion_pipeline.to(DEVICE)
 
 
-
 	# -- transformations
 	shared_transforms = []
-
 
 
 	# -- init the dataset
 	dataset = CC2_Dataset(
 			dataset_path=DATASET_PATH,
 			shared_transforms=shared_transforms)
-
 
 
 	# -- train and val dataloaders
@@ -68,13 +63,11 @@ def train(args):
 		val_shuffle=False)
 
 
-
 	# -- optimization
 	for param in stable_diffusion_pipeline.parameters():
 		param.requires_grad = False
 		
 	optimizer = optim.Adam(immunizer.parameters(), lr=LR)
-
 
 
 	# -- training the model
@@ -87,6 +80,7 @@ def train(args):
 		progress_bar = tqdm(train_loader, desc=f"Epoch {epoch+1}/{NUM_EPOCHS}")
 
 		for batch in progress_bar:
+			batch = batch.to(DEVICE)
 			images, masks, prompts = batch
 			
 			# Generate immunized image
@@ -115,6 +109,7 @@ def train(args):
 
 		with torch.no_grad():
 			for batch in val_progress_bar:
+				batch = batch.to(DEVICE)
 				images, masks, prompts = batch
 
 				# Generate immunized image

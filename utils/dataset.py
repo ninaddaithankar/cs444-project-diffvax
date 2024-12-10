@@ -1,17 +1,12 @@
 # implementation for the 'clothing co-parsing' dataset: https://github.com/bearpaw/clothing-co-parsing/tree/master 
 
 import os
+import random
 import torch
+import numpy as np
 
 from PIL import Image
 from scipy.io import loadmat
-
-from logging import getLogger
-
-import random
-
-_GLOBAL_SEED = 0
-logger = getLogger()
 
 
 
@@ -63,7 +58,7 @@ class CC2_Dataset(torch.utils.data.Dataset):
         shared_transforms=None,
         img_dir="/photos/",
         masks_dir="/annotations/pixel-level/",
-        prompts_filename="prompts.txt"
+        prompts_file="/prompts/prompts.txt"
     ):
         self.dataset_paths = dataset_path
         self.images_dir = os.path.join(dataset_path, img_dir)
@@ -80,7 +75,7 @@ class CC2_Dataset(torch.utils.data.Dataset):
         assert(len(self.images) == len(self.masks))
 
         prompts = []
-        with open(prompts_filename, 'r') as file:
+        with open(prompts_file, 'r') as file:
             for line in file:
                 prompts.append(line)
         self.prompts = prompts
@@ -98,6 +93,7 @@ class CC2_Dataset(torch.utils.data.Dataset):
 
         # so we simply keep the background as 0 and set other areas to 1 and treat the 1 are as foreground
         mask[mask != 0] = 1
+        mask = np.where(mask == 1, 0, 1)
 
         prompt = random.choice(self.prompts)
 
