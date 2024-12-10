@@ -77,8 +77,10 @@ def train(args):
 
 
 
-	# -- training loop
+	# -- training the model
 	for epoch in range(NUM_EPOCHS):
+
+		# -- the training loop
 		immunizer.train()
 		running_loss = 0.0
 		
@@ -102,9 +104,35 @@ def train(args):
 			optimizer.step()
 			
 			running_loss += total_loss.item()
-			progress_bar.set_postfix(loss=total_loss.item())
+			progress_bar.set_postfix(loss=running_loss.item()/len(train_loader))
 		
-		print(f"Epoch {epoch+1} finished. Average Loss: {running_loss / len(train_loader):.4f}")
+	
+		# -- the validation loop
+		immunizer.eval()
+		validation_loss = 0.0
+
+		val_progress_bar = tqdm(val_loader, desc="Validating", leave=False)
+
+		with torch.no_grad():
+			for batch in val_progress_bar:
+				images, masks, prompts = batch
+
+				# Generate immunized image
+				immunized_image, epsilon_im = immunizer(images, masks)
+				
+				# Compute the losses
+				loss_noise = L_noise(immunized_image, images, masks)
+				loss_edit = L_edit(immunized_image, images, masks, stable_diffusion_pipeline, prompts)
+				
+				# Total loss
+				total_loss = ALPHA * loss_noise + loss_edit
+
+				validation_loss += total_loss.item()
+				val_progress_bar.set_postfix(loss=validation_loss/len(val_loader))
+
+		print(f"Epoch {epoch+1} finished.")
+		print(f"Average Training Loss: {running_loss / len(train_loader):.4f}")
+		print(f"Average Validation Loss: {validation_loss / len(validation_loss):.4f}")
 
 
 
