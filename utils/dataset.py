@@ -8,7 +8,7 @@ from scipy.io import loadmat
 
 from logging import getLogger
 
-
+import random
 
 _GLOBAL_SEED = 0
 logger = getLogger()
@@ -99,7 +99,7 @@ class CC2_Dataset(torch.utils.data.Dataset):
         # so we simply keep the background as 0 and set other areas to 1 and treat the 1 are as foreground
         mask[mask != 0] = 1
 
-        prompt = self.prompts[index]
+        prompt = random.choice(self.prompts)
 
         if self.shared_transforms is not None:
             image = self.shared_transforms(image)
