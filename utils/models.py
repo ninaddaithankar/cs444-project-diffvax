@@ -1,6 +1,19 @@
 import torch
 import torch.nn as nn
 
+from typing import Any, List, Optional, Union
+
+import segmentation_models_pytorch as smp
+
+# from segmentation_models_pytorch.base import (
+#     ClassificationHead,
+#     SegmentationHead,
+#     SegmentationModel,
+# )
+# from segmentation_models_pytorch.encoders import get_encoder
+
+# from .decoder import UnetPlusPlusDecoder
+
 
 class UNet(nn.Module):
     def __init__(self):
@@ -62,7 +75,10 @@ class UNet(nn.Module):
 class ImmunizerModel(nn.Module):
     def __init__(self):
         super(ImmunizerModel, self).__init__()
-        self.UNet = UNet()
+        # self.UNet = UNet()
+        #Classes = 2 for mask and background
+        #Removed last argument of **kwargs since only applies to timm encoder models
+        self.UnetPlusPlus = smp.UnetPlusPlus(encoder_name='resnet18', encoder_depth=5, encoder_weights=None, decoder_use_batchnorm='inplace', decoder_channels=(256, 128, 64, 32, 16), decoder_attention_type='scse', in_channels=3, classes=2, activation=None, aux_params=None)
 
     def forward(self, image, mask):
         # Generate immunization noise
