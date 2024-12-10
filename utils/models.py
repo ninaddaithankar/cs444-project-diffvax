@@ -75,14 +75,15 @@ class UNet(nn.Module):
 class ImmunizerModel(nn.Module):
     def __init__(self):
         super(ImmunizerModel, self).__init__()
-        # self.UNet = UNet()
+        self.UNet = UNet()
         #Classes = 2 for mask and background
         #Removed last argument of **kwargs since only applies to timm encoder models
         self.UnetPlusPlus = smp.UnetPlusPlus(encoder_name='resnet18', encoder_depth=5, encoder_weights=None, decoder_use_batchnorm='inplace', decoder_channels=(256, 128, 64, 32, 16), decoder_attention_type='scse', in_channels=3, classes=2, activation=None, aux_params=None)
 
     def forward(self, image, mask):
         # Generate immunization noise
-        epsilon_im = self.UNet(image)
+        # epsilon_im = self.UNet(image)
+        epsilon_im = self.UnetPlusPlus(image)
         
         # Apply noise to the masked region
         immunized_image = image + epsilon_im * mask
