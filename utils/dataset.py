@@ -62,7 +62,8 @@ class CC2_Dataset(torch.utils.data.Dataset):
         mask_transforms=None,
         shared_transforms=None,
         img_dir="/photos/",
-        masks_dir="/annotations/pixel-level/"
+        masks_dir="/annotations/pixel-level/",
+        prompts_filename="prompts.txt"
     ):
         self.dataset_paths = dataset_path
         self.images_dir = os.path.join(dataset_path, img_dir)
@@ -78,8 +79,10 @@ class CC2_Dataset(torch.utils.data.Dataset):
 
         assert(len(self.images) == len(self.masks))
 
-        # TODO: implement prompt loading
         prompts = []
+        with open(prompts_filename, 'r') as file:
+            for line in file:
+                prompts.append(line)
         self.prompts = prompts
 
 
@@ -96,8 +99,7 @@ class CC2_Dataset(torch.utils.data.Dataset):
         # so we simply keep the background as 0 and set other areas to 1 and treat the 1 are as foreground
         mask[mask != 0] = 1
 
-        # TODO: change this placeholder to actual prompts
-        prompt = "a person in a courtroom"
+        prompt = self.prompts[index]
 
         if self.shared_transforms is not None:
             image = self.shared_transforms(image)
