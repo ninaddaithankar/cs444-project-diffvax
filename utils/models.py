@@ -28,6 +28,8 @@ class UNet(nn.Module):
         self.upconv1 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
         self.decoder1 = self.conv_block(128, 64)
 
+        self.final = nn.Conv2d(64, 3, kernel_size=1)
+
     def conv_block(self, in_channels, out_channels):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
@@ -37,9 +39,9 @@ class UNet(nn.Module):
         )
     
     def forward(self, input):
-        batch = input.shape[0]
+        # batch = input.shape[0]
 
-        input = input.reshape(batch, 1, 32, 32) #Reshape according to size of dataset used
+        # input = input.reshape(batch, 1, 512, 512) #Reshape according to size of dataset used
         enc1 = self.encoder1(input)
         enc2 = self.encoder2(self.maxpool(enc1))
         enc3 = self.encoder3(self.maxpool(enc2))
@@ -54,7 +56,7 @@ class UNet(nn.Module):
 
         outputs = self.final(dec1)
 
-        outputs = outputs.reshape(batch, -1)
+        # outputs = outputs.reshape(batch, -1)
 
         return outputs
     

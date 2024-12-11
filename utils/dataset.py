@@ -24,20 +24,23 @@ def get_train_and_val_loaders(
     val_size = len(dataset) - train_size
 
     # randomly split the dataset
-    train_dataset, val_dataset = torch.utils.random_split(dataset, [train_size, val_size])
+    train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
 
     print("Training dataset size:", len(train_dataset))
     print("Validation dataset size:", len(val_dataset))
 
     # create the dataloaders
-    train_loader = torch.utils.DataLoader(
-        train_datasetbatch_size=batch_size,
+    train_loader = torch.utils.data.DataLoader(
+        train_dataset,
+        batch_size=batch_size,
         pin_memory=pin_mem,
         num_workers=num_workers,
         persistent_workers=num_workers > 0,
         shuffle=train_shuffle)
     
-    val_loader = torch.utils.DataLoader(val_datasetbatch_size=batch_size,
+    val_loader = torch.utils.data.DataLoader(
+        val_dataset,
+        batch_size=batch_size,
         pin_memory=pin_mem,
         num_workers=num_workers,
         persistent_workers=num_workers > 0,
@@ -53,12 +56,13 @@ class CC2_Dataset(torch.utils.data.Dataset):
     def __init__(
         self,
         dataset_path,
+        limit=500,
         image_transforms=None,
         mask_transforms=None,
         shared_transforms=None,
-        img_dir="/photos/",
-        masks_dir="/annotations/pixel-level/",
-        prompts_file="/prompts/prompts.txt"
+        img_dir="photos/",
+        masks_dir="annotations/pixel-level/",
+        prompts_file="prompts/prompts.txt"
     ):
         self.dataset_paths = dataset_path
         self.images_dir = os.path.join(dataset_path, img_dir)
@@ -72,11 +76,16 @@ class CC2_Dataset(torch.utils.data.Dataset):
         self.images = sorted(os.listdir(self.images_dir))
         self.masks = sorted(os.listdir(self.masks_dir))
 
+        self.images = self.images[:limit]
+        self.masks = self.masks[:limit]
+
         assert(len(self.images) == len(self.masks))
 
         prompts = []
         with open(prompts_file, 'r') as file:
             for line in file:
+                if line.endswith('\n'):
+                    line = line[:-1]
                 prompts.append(line)
         self.prompts = prompts
 
@@ -89,11 +98,14 @@ class CC2_Dataset(torch.utils.data.Dataset):
         image = Image.open(os.path.join(self.images_dir, self.images[index])).convert("RGB")
         
         # the mask here is an annotated image where the background is 0 and other pixels are annotated with class numbers which we don't need
-        mask = loadmat(os.path.join(self.masks_dir, self.masks[index]))
+        mask = loadmat(os.path.join(self.masks_dir, self.masks[index]))['groundtruth']
+        mask = np.array(mask, dtype=np.uint8)
 
         # so we simply keep the background as 0 and set other areas to 1 and treat the 1 are as foreground
         mask[mask != 0] = 1
         # mask = np.where(mask == 1, 0, 1)
+
+        mask = Image.fromarray(mask)
 
         prompt = random.choice(self.prompts)
 
